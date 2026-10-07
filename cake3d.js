@@ -40,17 +40,23 @@ class BirthdayCake3D {
     this.scene = new THREE.Scene();
 
     // 2. Camera
-    this.camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    this.updateCameraAspect(width, height);
+    const safeW = width || 800;
+    const safeH = height || 500;
+    this.camera = new THREE.PerspectiveCamera(45, safeW / safeH, 0.1, 1000);
+    this.camera.position.set(0, 5.8, 13.5);
+    this.camera.lookAt(0, 2.3, 0);
 
     // 3. Renderer
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
-    this.renderer.setSize(width, height);
+    this.renderer.setSize(safeW, safeH);
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || window.innerWidth < 768;
     this.renderer.setPixelRatio(isMobile ? Math.min(window.devicePixelRatio, 1.5) : Math.min(window.devicePixelRatio, 2));
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.container.appendChild(this.renderer.domElement);
+
+    // Update responsive camera distance and aspect
+    this.updateCameraAspect(safeW, safeH);
 
     // 4. Lighting
     this.setupLighting();
@@ -511,7 +517,9 @@ class BirthdayCake3D {
 
   updateCameraAspect(width, height) {
     if (!this.camera || !this.renderer) return;
-    const aspect = width / height;
+    const w = width || (this.container ? this.container.clientWidth : 0) || window.innerWidth || 800;
+    const h = height || (this.container ? this.container.clientHeight : 0) || 500;
+    const aspect = w / h;
     this.camera.aspect = aspect;
     if (aspect < 0.85) {
       // Mobile portrait - move camera back for complete view
@@ -525,7 +533,7 @@ class BirthdayCake3D {
     }
     this.camera.lookAt(0, 2.3, 0);
     this.camera.updateProjectionMatrix();
-    this.renderer.setSize(width, height);
+    this.renderer.setSize(w, h);
   }
 
   blowOutCandles() {
