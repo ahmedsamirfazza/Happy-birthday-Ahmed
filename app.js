@@ -113,6 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Blow cake candles
       cake.blowOutCandles();
+      
 
       // UI updates
       blowCandlesBtn.classList.add('blown');
