@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Happy Birthday Engineer Ahmed Samir</title>
+  <meta name="description"
+    content="احتفال عيد ميلاد البشمهندس أحمد سمير مع تورتة ثلاثية الأبعاد تفاعلية وأجواء احتفالية راقية.">
+
+  <!-- Google Fonts: Cairo, Outfit, Cinzel, Great Vibes -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Cinzel:wght@600;700;900&family=Outfit:wght@400;600;700;800&family=Great+Vibes&display=swap"
+    rel="stylesheet">
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Canvas Confetti CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+
+  <!-- Three.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <!-- Ambient Luxury Glows & Floating Particles -->
+  <div class="ambient-glow glow-gold"></div>
+  <div class="ambient-glow glow-violet"></div>
+  <div class="stars-canvas" id="starsContainer"></div>
+  <div class="balloons-canvas" id="balloonsContainer"></div>
+
+  <!-- Top Navigation -->
+  <header class="luxury-nav">
+    <div class="nav-controls">
+      <button id="confettiBtn" class="luxury-btn icon-btn" title="أطلق الألعاب النارية والكونفيتي">
+        <i class="fa-solid fa-wand-magic-sparkles"></i>
+        <span>احتفال</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Hero Content & 3D Stage -->
+  <main class="showcase-container">
+    <!-- Header Titles & Typing Section -->
+    <div class="titles-wrapper">
+      <!-- Professional Event Date Pill -->
+      <div class="event-date-pill" dir="ltr">
+        <span class="pill-sparkle">✦</span>
+        <span class="pill-date">07 • 10 • 2026</span>
+        <span class="pill-sparkle">✦</span>
+      </div>
+
+      <div class="sub-script">Happy Birthday</div>
+
+      <!-- 1. Letter-by-letter typed English Title -->
+      <h1 class="main-title-english" id="typewriterTitle" dir="ltr">
+        <span class="typed-text" id="typedTarget"></span><span class="typing-cursor" id="cursorTitle">|</span>
+      </h1>
+
+      <!-- 2. Letter-by-letter typed Greeting Card below the name -->
+      <div class="greeting-card">
+        <div class="card-glow-border"></div>
+        <div class="card-inner">
+          <div class="card-sparkle-icon">✨</div>
+          <p class="greeting-card-text" id="cardGreetingContainer">
+            <span id="typedCardTarget"></span><span class="typing-cursor" id="cursorCard">|</span>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3D Rotating Cake Stage -->
+    <div class="cake-stage-box">
+      <!-- 3D Cake Canvas -->
+      <div id="cakeContainer" class="cake-3d-viewport"></div>
+
+      <!-- Hint to drag & rotate -->
+      <div class="stage-overlay-hint">
+        <i class="fa-solid fa-arrows-rotate"></i>
+        <span>التورتة تدور تلقائياً • اسحب بالماوس أو اللمس للتدوير</span>
+      </div>
+
+      <!-- Action Button to Blow Candles -->
+      <div class="cake-control-panel">
+        <button id="blowCandlesBtn" class="blow-candle-btn">
+          <span class="btn-glow-layer"></span>
+          <span class="btn-content">
+            <span class="btn-emoji" id="candleEmoji">🕯️</span>
+            <span id="candleBtnText">اطفئ الشموع</span>
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Celebration Banner (Shown upon blowing candles) -->
+    <div id="celebrationBanner" class="celebration-banner hidden">
+      <div class="banner-sparkle">🎉</div>
+      <div class="banner-text">
+        <h3>كل عام وأنت بألف خير يا أحمد ! 🎂</h3>
+        <p>سنة جديدة سعيدة مليئة بالنجاح والتألق وراحة البال بإذن الله ✨</p>
+      </div>
+      <button id="relightBtn" class="small-luxury-btn">إشعال الشموع مجدداً 🔥</button>
+    </div>
+    <!-- Bottom Add Greeting Button -->
+    <div class="bottom-wishes-bar">
+      <button id="openWishModalBtn" class="luxury-btn bottom-greeting-btn">
+        <i class="fa-solid fa-envelope-open-text"></i>
+        <span>أضف تهنئة 💌</span>
+      </button>
+    </div>
+  </main>
+
+  <!-- Modal: Add Greeting -->
+  <div id="wishModal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <button class="modal-close-btn" id="closeWishModalBtn">&times;</button>
+      <div class="modal-icon">💌</div>
+      <h3>أرسل تهنئة 🎂</h3>
+      <p class="modal-desc">اكتب رسالتك وسترسل مباشرة على واتساب ✨</p>
+
+      <form id="wishForm">
+        <div class="form-group">
+          <label for="wishMessageInput">رسالتك:</label>
+          <textarea id="wishMessageInput" rows="4" placeholder="اكتب تهنئتك هنا......." required
+            maxlength="300"></textarea>
+        </div>
+        <button type="submit" class="submit-wish-btn whatsapp-btn">
+          <i class="fa-brands fa-whatsapp"></i>
+          <span>إرسال على واتساب</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+
+
+  <footer class="minimal-footer">
+    <p>Designed with ❤️ for <span>Engineer Ahmed Samir</span> 07/10/2026</p>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="sound.js"></script>
+  <script src="cake3d.js"></script>
+  <script src="app.js"></script>
+</body>
+
+</html>
