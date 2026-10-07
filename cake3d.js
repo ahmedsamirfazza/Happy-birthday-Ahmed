@@ -25,6 +25,7 @@ class BirthdayCake3D {
     this.previousMousePosition = { x: 0, y: 0 };
     this.rotationVelocity = 0.007;
     this.damping = 0.95;
+    this.clock = new THREE.Clock();
 
     this.currentName = "أحمد";
 
@@ -43,9 +44,10 @@ class BirthdayCake3D {
     this.updateCameraAspect(width, height);
 
     // 3. Renderer
-    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
     this.renderer.setSize(width, height);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || window.innerWidth < 768;
+    this.renderer.setPixelRatio(isMobile ? Math.min(window.devicePixelRatio, 1.5) : Math.min(window.devicePixelRatio, 2));
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.container.appendChild(this.renderer.domElement);
@@ -454,49 +456,51 @@ class BirthdayCake3D {
   setupInteractions() {
     const dom = this.renderer.domElement;
 
-    // Mouse Drag
-    dom.addEventListener('mousedown', (e) => {
+    const onStart = (clientX) => {
       this.isDragging = true;
-      this.previousMousePosition = { x: e.clientX, y: e.clientY };
-    });
+      this.previousMousePosition = { x: clientX };
+      this.rotationVelocity = 0;
+    };
 
-    window.addEventListener('mouseup', () => {
-      this.isDragging = false;
-    });
-
-    dom.addEventListener('mousemove', (e) => {
+    const onMove = (clientX) => {
       if (!this.isDragging) return;
-      const deltaX = e.clientX - this.previousMousePosition.x;
-      this.cakeGroup.rotation.y += deltaX * 0.008;
-      this.rotationVelocity = deltaX * 0.0015;
-      this.previousMousePosition = { x: e.clientX, y: e.clientY };
+      const deltaX = clientX - this.previousMousePosition.x;
+      this.cakeGroup.rotation.y += deltaX * 0.007;
+      // Clamp velocity so fast swipes don't cause wild erratic spinning
+      this.rotationVelocity = Math.max(-0.035, Math.min(0.035, deltaX * 0.0012));
+      this.previousMousePosition = { x: clientX };
+    };
+
+    const onEnd = () => {
+      this.isDragging = false;
+    };
+
+    // Mouse drag
+    dom.addEventListener('mousedown', (e) => {
+      onStart(e.clientX);
     });
 
-    // Touch Drag for Mobile
+    window.addEventListener('mousemove', (e) => {
+      onMove(e.clientX);
+    });
+
+    window.addEventListener('mouseup', onEnd);
+
+    // Touch drag for Mobile / Tablet
     dom.addEventListener('touchstart', (e) => {
-      if (e.touches.length === 1) {
-        this.isDragging = true;
-        this.previousMousePosition = {
-          x: e.touches[0].clientX,
-          y: e.touches[0].clientY
-        };
+      if (e.touches && e.touches.length === 1) {
+        onStart(e.touches[0].clientX);
       }
     }, { passive: true });
 
-    window.addEventListener('touchend', () => {
-      this.isDragging = false;
-    });
-
-    dom.addEventListener('touchmove', (e) => {
-      if (!this.isDragging || e.touches.length !== 1) return;
-      const deltaX = e.touches[0].clientX - this.previousMousePosition.x;
-      this.cakeGroup.rotation.y += deltaX * 0.008;
-      this.rotationVelocity = deltaX * 0.0015;
-      this.previousMousePosition = {
-        x: e.touches[0].clientX,
-        y: e.touches[0].clientY
-      };
+    window.addEventListener('touchmove', (e) => {
+      if (this.isDragging && e.touches && e.touches.length === 1) {
+        onMove(e.touches[0].clientX);
+      }
     }, { passive: true });
+
+    window.addEventListener('touchend', onEnd);
+    window.addEventListener('touchcancel', onEnd);
 
     // Window Resize
     window.addEventListener('resize', () => {
@@ -548,31 +552,34 @@ class BirthdayCake3D {
     });
   }
 
-  animate(time) {
+  animate() {
     requestAnimationFrame(this.animate);
 
-    // Continuous auto-rotation with inertia
+    // Precise delta time for uniform smooth speed across all screens (60Hz, 90Hz, 120Hz)
+    const delta = Math.min(this.clock.getDelta(), 0.08);
+    const timeScale = delta * 60; // normalized to 60fps base
+
+    // Continuous auto-rotation with gentle damping back to cruising speed
     if (!this.isDragging) {
-      this.cakeGroup.rotation.y += this.rotationVelocity;
-      // return back gently to normal cruising rotation speed
+      this.cakeGroup.rotation.y += this.rotationVelocity * timeScale;
       const normalSpeed = 0.006;
-      this.rotationVelocity += (normalSpeed - this.rotationVelocity) * 0.03;
+      this.rotationVelocity += (normalSpeed - this.rotationVelocity) * Math.min(1, delta * 2.2);
     }
 
     // Flame flicker animation when candles are lit
     if (this.isCandlesLit) {
-      const t = time * 0.01;
+      const elapsed = this.clock.getElapsedTime();
       this.flames.forEach((flame, index) => {
-        const flicker = Math.sin(t + index * 1.5) * 0.12 + 1;
+        const flicker = Math.sin(elapsed * 10 + index * 1.5) * 0.12 + 1;
         flame.scale.y = flicker;
-        flame.scale.x = 1 + Math.cos(t * 1.2 + index) * 0.08;
-        flame.rotation.z = Math.sin(t * 0.8 + index) * 0.08;
+        flame.scale.x = 1 + Math.cos(elapsed * 12 + index) * 0.08;
+        flame.rotation.z = Math.sin(elapsed * 8 + index) * 0.08;
       });
     }
 
     // Subtle particle floating
     if (this.particles) {
-      this.particles.rotation.y += 0.0015;
+      this.particles.rotation.y += 0.0012 * timeScale;
     }
 
     this.renderer.render(this.scene, this.camera);
